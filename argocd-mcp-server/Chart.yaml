@@ -1,0 +1,6 @@
+apiVersion: v2
+name: argocd-mcp-server
+description: Helm chart to deploy ArgoCD MCP Server without building a Docker image
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "argocd-mcp-server.fullname" . }}-rb
+  labels:
+    app: argocd-mcp-server
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "argocd-mcp-server.fullname" . }}-sa
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "argocd-mcp-server.fullname" . }}-role
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,124 @@
+{
+  "tools": [
+    {
+      "name": "list_applications",
+      "description": "List all ArgoCD applications",
+      "parameters": {}
+    },
+    {
+      "name": "get_application",
+      "description": "Get details of a specific ArgoCD application",
+      "parameters": {
+        "application_name": "string"
+      }
+    },
+    {
+      "name": "get_application_resource_tree",
+      "description": "Get the resource tree of a specific ArgoCD application",
+      "parameters": {
+        "application_name": "string"
+      }
+    },
+    {
+      "name": "sync_application",
+      "description": "Trigger sync for an application",
+      "parameters": {
+        "application_name": "string"
+      }
+    },
+    {
+      "name": "delete_application",
+      "description": "Delete an ArgoCD application",
+      "parameters": {
+        "application_name": "string"
+      }
+    },
+    {
+      "name": "create_application",
+      "description": "Create a new ArgoCD application",
+      "parameters": {
+        "app_spec": "object"
+      }
+    },
+    {
+      "name": "get_app_logs",
+      "description": "Fetch logs from a pod related to an application",
+      "parameters": {
+        "namespace": "string",
+        "pod": "string",
+        "container": "string (optional)"
+      }
+    },
+    {
+      "name": "rollback_application",
+      "description": "Rollback an application to a previous revision",
+      "parameters": {
+        "application_name": "string",
+        "revision": "string"
+      }
+    },
+    {
+      "name": "list_projects",
+      "description": "List all ArgoCD projects",
+      "parameters": {}
+    },
+    {
+      "name": "get_project",
+      "description": "Get details of a specific ArgoCD project",
+      "parameters": {
+        "project_name": "string"
+      }
+    },
+
+    // ------------------- NEW USE CASES -------------------
+
+    {
+      "name": "add_cluster",
+      "description": "Add a new Kubernetes cluster (stage, dev, production) to ArgoCD",
+      "parameters": {
+        "cluster_name": "string",
+        "cluster_endpoint": "string",
+        "auth_token": "string"
+      }
+    },
+    {
+      "name": "configure_webhook",
+      "description": "Configure GitHub or GitLab webhook for ArgoCD auto-sync",
+      "parameters": {
+        "scm_type": "string (github or gitlab)",
+        "repo_url": "string",
+        "branch": "string",
+        "webhook_url": "string",
+        "secret": "string (optional)"
+      }
+    },
+    {
+      "name": "deploy_helm_chart",
+      "description": "Deploy a Helm chart into a specific cluster using repo, branch and chart path",
+      "parameters": {
+        "repo_url": "string",
+        "branch": "string",
+        "chart_path": "string",
+        "cluster_name": "string",
+        "namespace": "string"
+      }
+    },
+    {
+      "name": "set_environment",
+      "description": "Set environment variables or config for a specific cluster/application",
+      "parameters": {
+        "environment_name": "string",
+        "variables": "object"
+      }
+    },
+    {
+      "name": "configure_rbac",
+      "description": "Configure RBAC permissions for a user or group",
+      "parameters": {
+        "username": "string",
+        "role": "string",
+        "project": "string (optional)"
+      }
+    }
+  ]
+}
