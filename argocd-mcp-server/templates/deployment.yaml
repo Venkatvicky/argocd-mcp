@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "argocd-mcp-server.fullname" . }}
   labels:
-    app: argocd-mcp-server
+{{ include "argocd-mcp-server.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -15,10 +15,13 @@ spec:
         app: argocd-mcp-server
     spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
+      priorityClassName: mcp-priority
       containers:
         - name: mcp-server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
           command: ["sh", "-c"]
           args:
             - pip install fastapi uvicorn requests python-dotenv mcp[server] && \
