@@ -15,7 +15,7 @@ spec:
         app: argocd-mcp-server
     spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
-      priorityClassName: mcp-priority
+      # priorityClassName removed
       containers:
         - name: mcp-server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
