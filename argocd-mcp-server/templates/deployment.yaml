@@ -18,7 +18,7 @@ spec:
       volumes:
         - name: server-code
           configMap:          # your FastAPI code here
-            name: mcp-argo-code
+            name: mcp-argo
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
