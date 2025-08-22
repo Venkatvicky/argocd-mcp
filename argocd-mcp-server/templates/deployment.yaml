@@ -18,13 +18,11 @@ spec:
       initContainers:
         - name: install-deps
           image: python:3.11-slim
-          command:
-            - sh
-            - -c
-            - |
-              pip install --no-cache-dir requests python-dotenv -t /app
+          command: ["sh", "-c"]
+          args:
+            - pip install --no-cache-dir requests python-dotenv -t /app
           volumeMounts:
-            - name: server-config
+            - name: server-code
               mountPath: /app
       containers:
         - name: mcp-server
@@ -42,6 +40,8 @@ spec:
             - name: env-file
               mountPath: /app/env
       volumes:
+        - name: server-code
+          emptyDir: {}
         - name: server-config
           configMap:
             name: mcp-argo
