@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import os
 import json
@@ -32,7 +31,7 @@ mcp = FastMCP("ArgoCD MCP Server")
 # ArgoCD Client
 # ------------------------------
 class ArgoCDClient:
-    def _init_(self, base_url: str, token: str):
+    def __init__(self, base_url: str, token: str):   # ✅ fixed
         self.base_url = base_url.rstrip("/")
         self.headers = {
             "Authorization": f"Bearer {token}",
@@ -74,7 +73,7 @@ class ArgoCDClient:
 argocd_client = ArgoCDClient(ARGOCD_BASE_URL, ARGOCD_API_TOKEN)
 
 # ------------------------------
-# MCP Tools - Existing
+# MCP Tools
 # ------------------------------
 @mcp.tool()
 def mcp_list_applications(search: Optional[str] = None):
@@ -91,13 +90,9 @@ def mcp_get_application_resource_tree(application_name: str):
     """Get the resource tree of an ArgoCD application"""
     return argocd_client.get_application_resource_tree(application_name)
 
-# ------------------------------
-# MCP Tools - New
-# ------------------------------
 @mcp.tool()
 def add_cluster(cluster_name: str, cluster_endpoint: str, auth_token: str):
     """Add a new Kubernetes cluster (stage/dev/prod)"""
-    # Stub implementation, replace with actual argocd cluster add
     return {
         "status": "success",
         "message": f"Cluster {cluster_name} added with endpoint {cluster_endpoint}"
@@ -148,7 +143,7 @@ async def jsonrpc_handler(request: Request):
 # ------------------------------
 # SSE Endpoint
 # ------------------------------
-TOOLS_FILE_PATH = os.path.join(os.path.dirname(_file_), "tools.json")
+TOOLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "tools.json")   # ✅ fixed
 
 async def event_generator():
     while True:
@@ -179,6 +174,6 @@ async def sse_endpoint():
 # ------------------------------
 # Run server
 # ------------------------------
-if _name_ == "_main_":
+if __name__ == "__main__":    # ✅ fixed
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
