@@ -16,22 +16,22 @@ spec:
     spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
 
-      # ===== Add initContainers here =====
+      # Init container installs uvicorn and fastapi in a writable volume
       initContainers:
         - name: install-uvicorn
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           command: ["/bin/sh", "-c"]
-          args: ["pip install --no-cache-dir uvicorn fastapi -t /app"]
+          args: ["pip install --no-cache-dir uvicorn fastapi -t /python-packages"]
           volumeMounts:
-            - name: server-code
-              mountPath: /app
+            - name: python-packages
+              mountPath: /python-packages
 
       containers:
         - name: mcp-server
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/bin/sh", "-c"]
-          args: ["uvicorn server:app --host 0.0.0.0 --port 8000 --reload"]
+          args: ["PYTHONPATH=/python-packages uvicorn server:app --host 0.0.0.0 --port 8000 --reload"]
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           ports:
@@ -51,6 +51,9 @@ spec:
             - name: tools-json
               mountPath: /app/tools.json
               subPath: tools.json
+            - name: python-packages
+              mountPath: /python-packages
+
       volumes:
         - name: server-code
           configMap:
@@ -58,3 +61,5 @@ spec:
         - name: tools-json
           configMap:
             name: {{ include "argocd-mcp-server.fullname" . }}-tools
+        - name: python-packages
+          emptyDir: {}
