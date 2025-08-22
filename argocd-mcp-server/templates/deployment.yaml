@@ -26,7 +26,7 @@ spec:
           # Since your ConfigMap mounts server.py → /app/server.py, app=app works.
           ports:
             - containerPort: 8000
-          envFrom:
+          env:
             - secretRef:
                 name: {{ include "argocd-mcp-server.fullname" . }}-env
           volumeMounts:
