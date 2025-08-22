@@ -31,7 +31,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/bin/sh", "-c"]
-          args: ["PYTHONPATH=/python-packages uvicorn server:app --host 0.0.0.0 --port 8000 --reload"]
+          args: ["PYTHONPATH=/python-packages:/app uvicorn server:app --host 0.0.0.0 --port 8000 --reload"]
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           ports:
@@ -46,8 +46,7 @@ spec:
               value: "8000"
           volumeMounts:
             - name: server-code
-              mountPath: /app/server.py
-              subPath: server.py
+              mountPath: /app
             - name: tools-json
               mountPath: /app/tools.json
               subPath: tools.json
