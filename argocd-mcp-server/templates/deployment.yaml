@@ -17,16 +17,13 @@ spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
       containers:
         - name: mcp-server
-          # ✅ Use official FastAPI image (no runtime pip install required)
           image: "tiangolo/uvicorn-gunicorn-fastapi:python3.11"
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources | indent 12 }}
-          # ✅ Default CMD of this image runs "uvicorn app:app"
-          # Since your ConfigMap mounts server.py → /app/server.py, app=app works.
           ports:
             - containerPort: 8000
-          env:
+          envFrom:
             - secretRef:
                 name: {{ include "argocd-mcp-server.fullname" . }}-env
           volumeMounts:
