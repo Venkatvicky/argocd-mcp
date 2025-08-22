@@ -46,7 +46,13 @@ spec:
             - name: tools-json
               mountPath: /app/tools.json
               subPath: tools.json
+            - name: env-file
+              mountPath: /app/.env
+              subPath: .env
       volumes:
+        - name: env-file
+          secret:
+            secretName: {{ include "argocd-mcp-server.fullname" . }}-env
         - name: server-code
           configMap:
             name: {{ include "argocd-mcp-server.fullname" . }}-server
