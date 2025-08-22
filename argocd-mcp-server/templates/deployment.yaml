@@ -21,22 +21,6 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
-          env:
-            - name: ARGOCD_BASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "argocd-mcp-server.fullname" . }}-env
-                  key: ARGOCD_BASE_URL
-            - name: ARGOCD_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "argocd-mcp-server.fullname" . }}-env
-                  key: ARGOCD_USERNAME
-            - name: ARGOCD_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "argocd-mcp-server.fullname" . }}-env
-                  key: ARGOCD_PASSWORD
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
@@ -50,12 +34,12 @@ spec:
               mountPath: /app/.env
               subPath: .env
       volumes:
-        - name: env-file
-          secret:
-            secretName: {{ include "argocd-mcp-server.fullname" . }}-env
         - name: server-code
           configMap:
             name: {{ include "argocd-mcp-server.fullname" . }}-server
         - name: tools-json
           configMap:
             name: {{ include "argocd-mcp-server.fullname" . }}-tools
+        - name: env-file
+          secret:
+            secretName: {{ include "argocd-mcp-server.fullname" . }}-env
