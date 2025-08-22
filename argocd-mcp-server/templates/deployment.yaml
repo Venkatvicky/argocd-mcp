@@ -35,7 +35,7 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: server-config
+            - name: server-code
               mountPath: /app
             - name: env-file
               mountPath: /app/env
