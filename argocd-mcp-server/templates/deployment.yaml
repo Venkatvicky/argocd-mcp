@@ -24,22 +24,15 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
-            - name: server-code
-              mountPath: /app/server.py
-              subPath: server.py
-            - name: tools-json
-              mountPath: /app/tools.json
-              subPath: tools.json
+            - name: server-config
+              mountPath: /app
             - name: env-file
               mountPath: /app/.env
               subPath: .env
       volumes:
-        - name: server-code
+        - name: server-config
           configMap:
-            name: {{ include "argocd-mcp-server.fullname" . }}-server
-        - name: tools-json
-          configMap:
-            name: {{ include "argocd-mcp-server.fullname" . }}-tools
+            name: {{ include "argocd-mcp-server.fullname" . }}-config
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
