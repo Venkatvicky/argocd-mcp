@@ -5,8 +5,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 8000
+    - port: 80                # what the ELB listens on
+      targetPort: 8000        # containerPort inside your pod
       protocol: TCP
       name: http
   selector:
