@@ -42,7 +42,8 @@ spec:
               mountPath: /app
       volumes:
         - name: server-code
-          emptyDir: {}
+          configMap:
+            name: mcp-argo # contains server.py
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
