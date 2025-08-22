@@ -26,6 +26,11 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ include "argocd-mcp-server.fullname" . }}-env
+          env:
+            - name: APP_MODULE
+              value: "server:app"   # <--- tells uvicorn which app to start
+            - name: PORT
+              value: "8000"         # <--- ensures it listens on 0.0.0.0:8000
           volumeMounts:
             - name: server-code
               mountPath: /app/server.py
