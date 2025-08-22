@@ -20,7 +20,7 @@ spec:
           image: "tiangolo/uvicorn-gunicorn-fastapi:python3.11"
           command: ["/bin/sh", "-c"]
           args:
-            - pip install requests && exec /start.sh
+            - pip install mcp requests && exec /start.sh
           imagePullPolicy: IfNotPresent
           resources:
 {{ toYaml .Values.resources | indent 12 }}
