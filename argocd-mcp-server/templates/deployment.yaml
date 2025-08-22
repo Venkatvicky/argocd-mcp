@@ -27,8 +27,7 @@ spec:
             - name: server-config
               mountPath: /app
             - name: env-file
-              mountPath: /app/.env
-              subPath: .env
+              mountPath: /app/env
       volumes:
         - name: server-config
           configMap:
@@ -36,3 +35,4 @@ spec:
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
+
