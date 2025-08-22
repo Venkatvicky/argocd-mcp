@@ -17,11 +17,10 @@ spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
       containers:
         - name: mcp-server
-          image: "tiangolo/uvicorn-gunicorn-fastapi:python3.11"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["/bin/sh", "-c"]
-          args:
-            - pip install mcp requests && exec /start.sh
-          imagePullPolicy: IfNotPresent
+          args: ["uvicorn server:app --host 0.0.0.0 --port 8000 --reload"]
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           ports:
