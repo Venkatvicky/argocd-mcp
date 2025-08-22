@@ -12,7 +12,7 @@ from mcp.server.fastmcp import FastMCP
 # ------------------------------
 # Load environment variables
 # ------------------------------
-load_dotenv()
+load_dotenv("/app/env/.env")
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 ARGOCD_BASE_URL = os.getenv("ARGOCD_BASE_URL")
