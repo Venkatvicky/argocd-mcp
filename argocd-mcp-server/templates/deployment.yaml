@@ -31,7 +31,7 @@ spec:
       volumes:
         - name: server-config
           configMap:
-            name: {{ include "argocd-mcp-server.fullname" . }}-config
+            name: mcp-argo
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
