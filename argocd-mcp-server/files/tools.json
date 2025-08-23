@@ -8,37 +8,27 @@
     {
       "name": "get_application",
       "description": "Get details of a specific ArgoCD application",
-      "parameters": {
-        "application_name": "string"
-      }
+      "parameters": { "application_name": "string" }
     },
     {
       "name": "get_application_resource_tree",
       "description": "Get the resource tree of a specific ArgoCD application",
-      "parameters": {
-        "application_name": "string"
-      }
+      "parameters": { "application_name": "string" }
     },
     {
       "name": "sync_application",
       "description": "Trigger sync for an application",
-      "parameters": {
-        "application_name": "string"
-      }
+      "parameters": { "application_name": "string" }
     },
     {
       "name": "delete_application",
       "description": "Delete an ArgoCD application",
-      "parameters": {
-        "application_name": "string"
-      }
+      "parameters": { "application_name": "string" }
     },
     {
       "name": "create_application",
       "description": "Create a new ArgoCD application",
-      "parameters": {
-        "app_spec": "object"
-      }
+      "parameters": { "app_spec": "object" }
     },
     {
       "name": "get_app_logs",
@@ -65,13 +55,8 @@
     {
       "name": "get_project",
       "description": "Get details of a specific ArgoCD project",
-      "parameters": {
-        "project_name": "string"
-      }
+      "parameters": { "project_name": "string" }
     },
-
-    // ------------------- NEW USE CASES -------------------
-
     {
       "name": "add_cluster",
       "description": "Add a new Kubernetes cluster (stage, dev, production) to ArgoCD",
@@ -85,7 +70,7 @@
       "name": "configure_webhook",
       "description": "Configure GitHub or GitLab webhook for ArgoCD auto-sync",
       "parameters": {
-        "scm_type": "string (github or gitlab)",
+        "scm_type": "string",
         "repo_url": "string",
         "branch": "string",
         "webhook_url": "string",
