@@ -15,39 +15,36 @@ spec:
         app: argocd-mcp-server
     spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
+      initContainers:
+        - name: install-deps
+          image: python:3.11-slim
+          command: ["sh", "-c"]
+          args:
+            - pip install --no-cache-dir requests python-dotenv -t /app
+          volumeMounts:
+            - name: server-code
+              mountPath: /app
+      containers:
+        - name: mcp-server
+          image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+          command: ["uvicorn"]
+          args: ["server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: server-config
+              mountPath: /app
+            - name: env-file
+              mountPath: /app/env
       volumes:
         - name: server-code
-          configMap:          # your FastAPI code here
+          emptyDir: {}
+        - name: server-config
+          configMap:
             name: mcp-argo
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
-        - name: python-deps
-          emptyDir: {}        # writable volume for Python packages
-      initContainers:
-        - name: install-deps
-          image: python:3.12-slim
-          command: ["sh", "-c"]
-          args:
-            - pip install --no-cache-dir uvicorn requests python-dotenv -t /python-deps
-          volumeMounts:
-            - name: python-deps
-              mountPath: /python-deps
-      containers:
-        - name: mcp-server
-          image: python:3.12-slim
-          command: ["python3", "-m", "uvicorn"]
-          args: ["server:app", "--host", "0.0.0.0", "--port", "8000"]
-          ports:
-            - containerPort: 8000
-          env:
-            - name: PYTHONPATH
-              value: /python-deps:/app
-          volumeMounts:
-            - name: server-code
-              mountPath: /app
-            - name: env-file
-              mountPath: /app/env
-            - name: python-deps
-              mountPath: /python-deps
-
