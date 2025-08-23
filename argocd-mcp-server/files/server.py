@@ -12,7 +12,10 @@ from mcp.server.fastmcp import FastMCP
 # ------------------------------
 # Load environment variables
 # ------------------------------
-load_dotenv("/app/env/.env")
+BASE_DIR = os.path.dirname(_file_)
+ENV_PATH = os.path.join(BASE_DIR, "env", ".env")
+
+load_dotenv(ENV_PATH)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 ARGOCD_BASE_URL = os.getenv("ARGOCD_BASE_URL")
@@ -31,7 +34,7 @@ mcp = FastMCP("ArgoCD MCP Server")
 # ArgoCD Client
 # ------------------------------
 class ArgoCDClient:
-    def __init__(self, base_url: str, token: str):   # ✅ fixed
+    def _init_(self, base_url: str, token: str):
         self.base_url = base_url.rstrip("/")
         self.headers = {
             "Authorization": f"Bearer {token}",
@@ -73,78 +76,91 @@ class ArgoCDClient:
 argocd_client = ArgoCDClient(ARGOCD_BASE_URL, ARGOCD_API_TOKEN)
 
 # ------------------------------
-# MCP Tools
+# MCP Tools (manual definitions)
 # ------------------------------
-@mcp.tool()
-def mcp_list_applications(search: Optional[str] = None):
-    """List ArgoCD applications"""
+@mcp.tool(name="list_applications")
+def list_applications(search: Optional[str] = None):
     return argocd_client.list_applications(search)
 
-@mcp.tool()
-def mcp_get_application(application_name: str):
-    """Get details of an ArgoCD application"""
+@mcp.tool(name="get_application")
+def get_application(application_name: str):
     return argocd_client.get_application(application_name)
 
-@mcp.tool()
-def mcp_get_application_resource_tree(application_name: str):
-    """Get the resource tree of an ArgoCD application"""
+@mcp.tool(name="get_application_resource_tree")
+def get_application_resource_tree(application_name: str):
     return argocd_client.get_application_resource_tree(application_name)
 
-@mcp.tool()
-def add_cluster(cluster_name: str, cluster_endpoint: str, auth_token: str):
-    """Add a new Kubernetes cluster (stage/dev/prod)"""
-    return {
-        "status": "success",
-        "message": f"Cluster {cluster_name} added with endpoint {cluster_endpoint}"
-    }
+# Example stub tool
+@mcp.tool(name="sync_application")
+def sync_application(application_name: str):
+    return {"status": "todo", "message": f"Sync {application_name} not implemented yet"}
 
-@mcp.tool()
-def configure_webhook(scm_type: str, repo_url: str, branch: str, webhook_url: str, secret: Optional[str] = None):
-    """Configure GitHub or GitLab webhook for ArgoCD auto-sync"""
-    return {
-        "status": "success",
-        "message": f"Webhook configured for {scm_type} repo {repo_url} (branch: {branch})"
-    }
+# ------------------------------
+# Load tools.json dynamically (fixed version)
+# ------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(_file_))   # absolute dir of server.py
+TOOLS_FILE_PATH = os.path.join(BASE_DIR, "tools.json")  # tools.json in same folder
 
-@mcp.tool()
-def deploy_helm_chart(repo_url: str, branch: str, chart_path: str, cluster_name: str, namespace: str):
-    """Deploy Helm chart into a specific cluster"""
-    return {
-        "status": "success",
-        "message": f"Helm chart {chart_path} from {repo_url}@{branch} deployed to {cluster_name}/{namespace}"
-    }
+print(f"🔎 Looking for tools.json at: {TOOLS_FILE_PATH}")
 
-@mcp.tool()
-def set_environment(environment_name: str, variables: Dict[str, Any]):
-    """Set environment variables/config for a cluster/application"""
-    return {
-        "status": "success",
-        "message": f"Environment {environment_name} configured",
-        "variables": variables
-    }
+if os.path.exists(TOOLS_FILE_PATH):
+    try:
+        with open(TOOLS_FILE_PATH, "r") as f:
+            tools_config = json.load(f)
 
-@mcp.tool()
-def configure_rbac(username: str, role: str, project: Optional[str] = None):
-    """Configure RBAC permissions for a user or group"""
-    return {
-        "status": "success",
-        "message": f"RBAC role {role} assigned to {username} in project {project or 'global'}"
-    }
+        for tool in tools_config.get("tools", []):
+            tool_name = tool.get("name")
+
+            if tool_name:
+                def make_tool(name):
+                    @mcp.tool(name=name)
+                    def generic_tool(**kwargs):
+                        return {
+                            "status": "todo",
+                            "message": f"Tool '{name}' is defined in tools.json but not implemented in server.py",
+                            "params": kwargs
+                        }
+                    return generic_tool
+
+                make_tool(tool_name)
+
+        print(f"✅ Loaded {len(tools_config.get('tools', []))} tools from tools.json")
+    except Exception as e:
+        print(f"❌ Failed to load tools.json: {e}")
+else:
+    print(f"⚠ tools.json not found at {TOOLS_FILE_PATH}")
 
 # ------------------------------
 # JSON-RPC Endpoint for MCP
 # ------------------------------
 @app.post("/jsonrpc")
 async def jsonrpc_handler(request: Request):
-    body = await request.json()
-    response = await mcp.handle_jsonrpc(body)
-    return response
+    raw_body = await request.body()
+    print("🔍 Incoming /jsonrpc request:", raw_body.decode())
+
+    if not raw_body.strip():
+        return {"error": "Empty request body"}
+
+    try:
+        body = await request.json()
+    except Exception as e:
+        return {"error": f"Invalid JSON: {str(e)}"}
+
+    try:
+        # ✅ Correct call
+        response = await mcp.handle_jsonrpc(body)
+        return response
+    except Exception as e:
+        print(f"❌ MCP error: {e}")
+        return {
+            "jsonrpc": "2.0",
+            "id": body.get("id"),
+            "error": {"code": -32000, "message": str(e)},
+        }
 
 # ------------------------------
-# SSE Endpoint
+# SSE Endpoint (streams tools.json)
 # ------------------------------
-TOOLS_FILE_PATH = os.path.join(os.path.dirname(__file__), "tools.json")   # ✅ fixed
-
 async def event_generator():
     while True:
         try:
@@ -165,15 +181,24 @@ async def event_generator():
             }
             yield f"data: {json.dumps(error_msg)}\n\n"
 
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
 
 @app.get("/sse")
 async def sse_endpoint():
     return StreamingResponse(event_generator(), media_type="text/event-stream")
-
+# ------------------------------
+# Health Check
+# ------------------------------
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "tools_json": TOOLS_FILE_PATH,
+        "tools_json_exists": os.path.exists(TOOLS_FILE_PATH)
+    }
 # ------------------------------
 # Run server
 # ------------------------------
-if __name__ == "__main__":    # ✅ fixed
+if _name_ == "_main_":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
