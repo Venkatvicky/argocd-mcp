@@ -1,6 +1,5 @@
-fastapi==0.111.1
-uvicorn[standard]==0.23.2
-python-dotenv==1.0.1
-requests==2.31.0
-urllib3==2.0.5
-mcp==0.1.0   # or your local MCP package
+fastapi
+uvicorn[standard]
+requests
+python-dotenv
+fastmcp
