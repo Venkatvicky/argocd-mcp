@@ -15,18 +15,15 @@ spec:
         app: argocd-mcp-server
     spec:
       serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
-      # Init container: install dependencies into /deps
       initContainers:
         - name: install-deps
           image: python:3.11-slim
           command: ["sh", "-c"]
           args:
-            - pip install --no-cache-dir -r /app/requirements.txt -t /deps
+            - pip install --no-cache-dir requests python-dotenv -t /deps
           volumeMounts:
             - name: deps
               mountPath: /deps
-            - name: server-config
-              mountPath: /app
       containers:
         - name: mcp-server
           image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
