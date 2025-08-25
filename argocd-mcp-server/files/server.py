@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
-from typing import Optional, Dict, Any
+from typing import Optional
 import os
 import json
 import requests
@@ -12,7 +12,7 @@ from mcp.server.fastmcp import FastMCP
 # ------------------------------
 # Load environment variables
 # ------------------------------
-BASE_DIR = os.path.dirname(_file_)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ENV_PATH = os.path.join(BASE_DIR, "env", ".env")
 
 load_dotenv(ENV_PATH)
@@ -34,7 +34,7 @@ mcp = FastMCP("ArgoCD MCP Server")
 # ArgoCD Client
 # ------------------------------
 class ArgoCDClient:
-    def _init_(self, base_url: str, token: str):
+    def __init__(self, base_url: str, token: str):
         self.base_url = base_url.rstrip("/")
         self.headers = {
             "Authorization": f"Bearer {token}",
@@ -76,7 +76,7 @@ class ArgoCDClient:
 argocd_client = ArgoCDClient(ARGOCD_BASE_URL, ARGOCD_API_TOKEN)
 
 # ------------------------------
-# MCP Tools (manual definitions)
+# MCP Tools
 # ------------------------------
 @mcp.tool(name="list_applications")
 def list_applications(search: Optional[str] = None):
@@ -90,16 +90,14 @@ def get_application(application_name: str):
 def get_application_resource_tree(application_name: str):
     return argocd_client.get_application_resource_tree(application_name)
 
-# Example stub tool
 @mcp.tool(name="sync_application")
 def sync_application(application_name: str):
     return {"status": "todo", "message": f"Sync {application_name} not implemented yet"}
 
 # ------------------------------
-# Load tools.json dynamically (fixed version)
+# Load tools.json dynamically
 # ------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(_file_))   # absolute dir of server.py
-TOOLS_FILE_PATH = os.path.join(BASE_DIR, "tools.json")  # tools.json in same folder
+TOOLS_FILE_PATH = os.path.join(BASE_DIR, "tools.json")
 
 print(f"🔎 Looking for tools.json at: {TOOLS_FILE_PATH}")
 
@@ -131,7 +129,7 @@ else:
     print(f"⚠ tools.json not found at {TOOLS_FILE_PATH}")
 
 # ------------------------------
-# JSON-RPC Endpoint for MCP
+# JSON-RPC Endpoint
 # ------------------------------
 @app.post("/jsonrpc")
 async def jsonrpc_handler(request: Request):
@@ -147,7 +145,6 @@ async def jsonrpc_handler(request: Request):
         return {"error": f"Invalid JSON: {str(e)}"}
 
     try:
-        # ✅ Correct call
         response = await mcp.handle_jsonrpc(body)
         return response
     except Exception as e:
@@ -159,7 +156,7 @@ async def jsonrpc_handler(request: Request):
         }
 
 # ------------------------------
-# SSE Endpoint (streams tools.json)
+# SSE Endpoint
 # ------------------------------
 async def event_generator():
     while True:
@@ -186,6 +183,7 @@ async def event_generator():
 @app.get("/sse")
 async def sse_endpoint():
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 # ------------------------------
 # Health Check
 # ------------------------------
@@ -196,9 +194,10 @@ async def health():
         "tools_json": TOOLS_FILE_PATH,
         "tools_json_exists": os.path.exists(TOOLS_FILE_PATH)
     }
+
 # ------------------------------
 # Run server
 # ------------------------------
-if _name_ == "_main_":
+if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
