@@ -1,31 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "argocd-mcp-server.fullname" . }}
+  labels:
+    {{- include "argocd-mcp-server.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: argocd-mcp-server
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: argocd-mcp-server
     spec:
+      serviceAccountName: {{ include "argocd-mcp-server.fullname" . }}-sa
+      initContainers:
+        - name: install-deps
+          image: python:3.11-slim
+          command: ["sh", "-c"]
+          args:
+            - pip install --no-cache-dir requests python-dotenv -t /deps
+          volumeMounts:
+            - name: deps
+              mountPath: /deps
       containers:
-      - name: argocd-mcp
-        image: python:3.11-slim   # <-- no custom docker
-        command: ["sh", "-c"]
-        args:
-          - pip install fastapi uvicorn[standard] requests python-dotenv urllib3 mcp \
-            && uvicorn server:app --host 0.0.0.0 --port 8000
-        workingDir: /app
-        volumeMounts:
-        - name: server-code
-          mountPath: /app
-        ports:
-        - containerPort: 8000
+        - name: mcp-server
+          image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+          env:
+            - name: PYTHONPATH
+              value: "/deps:/app"
+          command: ["uvicorn"]
+          args: ["server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: deps
+              mountPath: /deps
+            - name: server-config
+              mountPath: /app
+            - name: env-file
+              mountPath: /app/env
       volumes:
-      - name: server-code
-        configMap:
-          name: argocd-mcp-code
+        - name: deps
+          emptyDir: {}
+        - name: server-config
+          configMap:
+            name: mcp-argo
+        - name: env-file
+          secret:
+            secretName: {{ include "argocd-mcp-server.fullname" . }}-env
