@@ -49,7 +49,8 @@ spec:
           emptyDir: {}
         - name: server-config
           configMap:
-            name: mcp-argo
+            # ✅ Use the actual ConfigMap name instead of "mcp-argo"
+            name: argocd-mcp-code
         - name: env-file
           secret:
             secretName: {{ include "argocd-mcp-server.fullname" . }}-env
